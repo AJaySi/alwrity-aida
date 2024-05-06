@@ -15,9 +15,8 @@ from tenacity import (
 def main():
     # Set page configuration
     st.set_page_config(
-        page_title="Alwrity",
+        page_title="Alwrity Copywriting",
         layout="wide",
-        page_icon="img/logo.png"
     )
     # Remove the extra spaces from margin top.
     st.markdown("""
@@ -56,35 +55,8 @@ def main():
     hide_streamlit_footer = '<style>#MainMenu {visibility: hidden;} footer {visibility: hidden;}</style>'
     st.markdown(hide_streamlit_footer, unsafe_allow_html=True)
 
-    # Sidebar input for OpenAI API Key
-    st.sidebar.image("img/alwrity.jpeg", use_column_width=True)
-    st.sidebar.markdown(f"🧕 :red[Checkout Alwrity], complete **AI writer & Blogging solution**:[Alwrity](https://alwrity.netlify.app)")
-    
     # Title and description
     st.title("✍️ Alwrity - AI Generator for CopyWriting AIDA Formula")
-    with st.expander("What is **Copywriting AIDA formula** & **Howto Use**? 📝❗"):
-        st.markdown('''
-           ### What's AIDA copywriting Formula, Howto use this AI generator 🗣️
-    ---
-    #### AIDA Copywriting Formula
-
-    AIDA is a classic and widely used copywriting formula in marketing and advertising. It stands for:
-
-    1. **Attention**: Grab the audience's attention with a catchy headline or opening statement.
-    2. **Interest**: Generate interest by providing compelling information or addressing pain points.
-    3. **Desire**: Create a sense of want or need for the product/service by emphasizing benefits.
-    4. **Action**: Prompt the audience to take action, such as making a purchase or signing up.
-
-    The AIDA formula guides copywriters in structuring their content to lead the audience through a logical sequence of steps, 
-    ultimately resulting in a desired action.
-
-    #### AIDA Copywriting Formula: Simple Example
-
-    **Headline (Attention):**  Transform Your Smile Today!
-    **Body (Interest):** "Sick of hiding your smile? Our teeth whitening kit delivers professional results at home.
-    **Body (Desire):** Imagine flashing a dazzling smile that lights up the room. With our kit, you'll have whiter teeth in just days.
-    **Call to Action (Action):** Ready for a radiant smile? Order now and start your journey to brighter, happier teeth!
-    --- ''')
     
     # Input section
     with st.expander("**PRO-TIP** - Campaign's Key features and benefits to build **Interest & Desire**", expanded=True):
@@ -128,13 +100,6 @@ def main():
                     else:
                         st.error("💥**Failed to AIDA your Content. Please try again!**")
 
-    data_oracle = import_json(r"lottie_files/brain_robot.json")
-    st_lottie(data_oracle, width=600, key="oracle")
-    st.markdown('''
-                Copywrite using AIDA formula - powered by AI (OpenAI, Gemini Pro).
-                Implemented by [Alwrity](https://alwrity.netlify.app).
-                Know more: [Google's Stance on AI generated content](https://alwrity.netlify.app/post/googles-guidelines-on-using-ai-generated-content-everything-you-need-to-know)
-                ''')
 
 
 # Function to validate if the input field is not empty
@@ -163,61 +128,68 @@ def generate_aida_copywrite(aida_brand_about, aida_brand_details,
             Include {aida_url} in CTA. Your response should be in {aida_language} language.
             """
     # Exception Handling.
-    copywrite_aida = openai_chatgpt(prompt)
-    return copywrite_aida
+    try:
+        response = generate_text_with_exception_handling(prompt)
+        return response
+    except Exception as err:
+        st.error(f"Exit: Failed to get response from LLM: {err}")
+        exit(1)
 
 
 @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
-def openai_chatgpt(prompt, model="gpt-3.5-turbo-0125", temperature=0.2, max_tokens=4096, top_p=0.9, n=1):
+def generate_text_with_exception_handling(prompt):
     """
-    Wrapper function for OpenAI's ChatGPT completion.
+    Generates text using the Gemini model with exception handling.
 
     Args:
-        prompt (str): The input text to generate completion for.
-        model (str, optional): Model to be used for the completion. Defaults to "gpt-4-1106-preview".
-        temperature (float, optional): Controls randomness. Lower values make responses more deterministic. Defaults to 0.2.
-        max_tokens (int, optional): Maximum number of tokens to generate. Defaults to 8192.
-        top_p (float, optional): Controls diversity. Defaults to 0.9.
-        n (int, optional): Number of completions to generate. Defaults to 1.
+        api_key (str): Your Google Generative AI API key.
+        prompt (str): The prompt for text generation.
 
     Returns:
-        str: The generated text completion.
-
-    Raises:
-        SystemExit: If an API error, connection error, or rate limit error occurs.
+        str: The generated text.
     """
-    # Wait for 10 seconds to comply with rate limits
-    for _ in range(10):
-        time.sleep(1)
 
     try:
-        client = openai.OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
-        response = client.chat.completions.create(
-            model=model,
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=max_tokens,
-            n=n,
-            top_p=top_p
-            # Additional parameters can be included here
-        )
-        return response.choices[0].message.content
+        genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
 
-    except openai.APIError as e:
-        st.error(f"OpenAI API Error: {e}")
-    except openai.APIConnectionError as e:
-        st.error(f"Failed to connect to OpenAI API: {e}")
-    except openai.RateLimitError as e:
-        st.error(f"Rate limit exceeded on OpenAI API request: {e}")
-    except Exception as err:
-        st.error(f"OpenAI error: {err}")
+        generation_config = {
+            "temperature": 1,
+            "top_p": 0.95,
+            "top_k": 0,
+            "max_output_tokens": 8192,
+        }
 
+        safety_settings = [
+            {
+                "category": "HARM_CATEGORY_HARASSMENT",
+                "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+            },
+            {
+                "category": "HARM_CATEGORY_HATE_SPEECH",
+                "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+            },
+            {
+                "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+            },
+            {
+                "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+            },
+        ]
 
+        model = genai.GenerativeModel(model_name="gemini-1.5-pro-latest",
+                                      generation_config=generation_config,
+                                      safety_settings=safety_settings)
 
-# Function to import JSON data
-def import_json(path):
-    with open(path, "r", encoding="utf8", errors="ignore") as file:
-        url = json.load(file)
-        return url
+        convo = model.start_chat(history=[])
+        convo.send_message(prompt)
+        return convo.last.text
+
+    except Exception as e:
+        st.exception(f"An unexpected error occurred: {e}")
+        return None
+
 
 
 if __name__ == "__main__":
