@@ -1,15 +1,11 @@
-import time #Iwish
 import os
-import json
-import openai
-import requests
 import streamlit as st
-from streamlit_lottie import st_lottie
 from tenacity import (
     retry,
     stop_after_attempt,
     wait_random_exponential,
 )
+import google.generativeai as genai
 
 
 def main():
@@ -64,19 +60,19 @@ def main():
         with col1:
             aida_brand_about = st.text_input('**Enter Brand/Person/Company Name**')
         with col2:
-            aida_brand_details = st.text_input(f'**Describe What {aida_brand_about} Does ?** (In 5-6 words)')
+            aida_brand_details = st.text_input(f'**Describe What Your Company Does ?** (In 5-6 words)')
 
         aida_interest = st.text_input(f'**Provide *Attention* grabbing details of {aida_brand_about} campaign ?** (Grab the audiences attention with a catchy headline or opening statement. Create a sense of want or need for the product/service by emphasizing benefits.)')
         aida_target_audience = st.text_input(f"**Enter {aida_brand_about} Target Audience:** (Example: Wellness, Yoga, IT professionals, Senior Citizen, Adventure seekers, GenZ etc)")
 
-        aida_cta = st.text_input(f"**Call To Action (CTA):** Prompt {aida_brand_about} audience to take action, such as Buy now, Register, Know more etc")
+        aida_cta = st.text_input(f"**Call To Action (CTA):** Prompt Audience to take action, such as Buy now, Register, Know more etc")
 
         col1, col2, space, col3 = st.columns([5, 5, 0.5, 5])
         with col1:
             aida_platform = st.selectbox('Copywriting Type:', ('Social media copy', 'Email copy', 
                     'Website copy', 'Ad copy', 'Product copy'), index=0)
         with col2:
-            aida_url = st.text_input(f'**Landing Page URL**: Provide {aida_brand_about} web url to use (Optional).')
+            aida_url = st.text_input(f'**Landing Page URL**: Provide web url to use (Optional).')
         with col3:
             aida_language = st.selectbox('Choose Language', ('English', 'Hindustani',
                 'Chinese', 'Hindi', 'Spanish'), index=0)
